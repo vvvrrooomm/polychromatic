@@ -2186,7 +2186,7 @@ class PageLoaded():
         # Show message about the old PPA being deprecated.
         distro_name = distro.linux_distribution()[0]
         if distro_name == "Ubuntu" or distro_name == "Debian":
-            codename = distro.codename
+            codename = distro.codename()
             for source_file in [
                 "/etc/apt/sources.list.d/lah7-ubuntu-polychromatic-" + codename + ".list",
                 "/etc/apt/sources.list.d/lah7-ubuntu-polychromatic-daily-" + codename + ".list"
