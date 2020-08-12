@@ -504,6 +504,7 @@ class AppIndicator(object):
             [main_submenu, "lighting_none", ["main", "none"], "none", _("None")],
             [main_submenu, "lighting_spectrum", ["main", "spectrum"], "spectrum", _("Spectrum")],
             [main_submenu, "lighting_wave", ["main", "wave"], "wave", _("Wave")],
+            [main_submenu, "lighting_moon", ["main", "Moon"], "Moon", _("Moon")],
             [main_submenu, "lighting_reactive", ["main", "reactive", 1], "reactive", _("Reactive (Fast)")],
             [main_submenu, "lighting_reactive", ["main", "reactive", 2], "reactive", _("Reactive (Medium)")],
             [main_submenu, "lighting_reactive", ["main", "reactive", 3], "reactive", _("Reactive (Slow)")],
