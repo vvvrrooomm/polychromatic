@@ -27,6 +27,10 @@ class Backend(_backend.Backend):
     """
     Bindings for the OpenRazer 2.x Python library.
     """
+
+    FAN_MODE_MANUAL = 0x01
+    FAN_MODE_AUTO = 0x00
+
     def __init__(self, dbg, common, _):
         super().__init__(dbg, common, _)
         self.backend_id = "openrazer"
@@ -276,6 +280,81 @@ class Backend(_backend.Backend):
                     "colours": [] # n/a
                 })
 
+            fan_control,_ = self._get_device_fan_control(rdevice, zone)
+            if fan_control:
+                current_speed = fan_control.get_fan_speed(1) * 100
+                result = fan_control.get_fan_mode(1)
+                current_fan_mode = result[0]
+                current_power_mode = result[1]
+                options.append({
+                    "id": "fan_speed",
+                    "label": self._("Fan Speed"),
+                    "type": "slider",
+                    "value": current_speed,
+                    "min": 0,
+                    "max": 6000,
+                    "step": 100,
+                    "suffix": " rpm",
+                    "colours": [] # n/a
+                })
+
+                fan_modes=[]
+                fan_modes.append({
+                    "id": "fan_mode_auto",
+                    "label": "Automatic",
+                    "data": self.FAN_MODE_AUTO,
+                    "active": (current_fan_mode == 0)
+                })
+                fan_modes.append({
+                    "id": "fan_mode_man",
+                    "label": "Manual",
+                    "data": self.FAN_MODE_MANUAL,
+                    "active": (current_fan_mode == 1)
+                })
+
+                power_modes=[]
+                power_modes.append({
+                    "id": "power_mode_bal",
+                    "label": "Balanced",
+                    "data": "0",
+                    "active": (current_power_mode == 0)
+                })
+                power_modes.append({
+                    "id": "power_mode_gam",
+                    "label": "Gaming",
+                    "data": "1",
+                    "active": (current_power_mode == 1)
+                })
+                power_modes.append({
+                    "id": "power_mode_creator",
+                    "label": "Creator",
+                    "data": "2",
+                    "active": (current_power_mode == 2)
+                })
+                power_modes.append({
+                    "id": "power_mode_Custom",
+                    "label": "Custom",
+                    "data": "4",
+                    "active": (current_power_mode == 4)
+                })
+
+                options.append({
+                    "id": "fan_mode",
+                    "label": self._("Fan Mode"),
+                    "type": "multichoice",
+                    "parameters": fan_modes,    
+                    "value": current_fan_mode,
+                    "colours": [] # n/a
+                })
+                options.append({
+                    "id": "power_mode",
+                    "label": self._("Power Mode"),
+                    "type": "multichoice",
+                    "parameters": power_modes,    
+                    "value": current_power_mode,
+                    "colours": [] # n/a
+                })
+
             # Hardware Effects
             current_state = self._read_persistence_storage(rdevice, zone)
 
@@ -505,9 +584,9 @@ class Backend(_backend.Backend):
 
         if rdevice.has("poll_rate"):
             _init_main_if_empty()
-            params = []
+            fan_modes = []
             for rate in poll_rate_ranges:
-                params.append({
+                fan_modes.append({
                     "id": "{0}Hz".format(rate),
                     "label": "{0} Hz".format(rate),
                     "data": rate,
@@ -518,7 +597,7 @@ class Backend(_backend.Backend):
                 "id": "poll_rate",
                 "label": self._("Poll Rate"),
                 "type": "multichoice",
-                "parameters": params,
+                "parameters": fan_modes,
                 "active": True,         # Always a poll rate
                 "colours": [] # n/a
             })
@@ -842,6 +921,28 @@ class Backend(_backend.Backend):
                 # Params: (int)
                 rdevice.poll_rate = int(option_data)
 
+            elif option_id == "fan_speed":
+                rdevice.set_fan_speed(1,int(option_data)/100)
+                rdevice.set_fan_speed(2,int(option_data)/100)
+
+                # fan_speed only applies in fan_mode auto
+                mode1 = rdevice.get_fan_mode(1)
+                rdevice.set_fan_mode(1,self.FAN_MODE_MANUAL, mode1[1])
+                mode2 = rdevice.get_fan_mode(2)
+                rdevice.set_fan_mode(2,self.FAN_MODE_MANUAL, mode2[1])
+
+            elif option_id == "fan_mode":
+                mode1 = rdevice.get_fan_mode(1)
+                rdevice.set_fan_mode(1, int(option_data), mode1[1])
+                mode2 = rdevice.get_fan_mode(2)
+                rdevice.set_fan_mode(2,int(option_data), mode2[1])
+
+            elif option_id == "power_mode":
+                mode1 = rdevice.get_fan_mode(1)
+                rdevice.set_fan_mode(1, mode1[0], int(option_data))
+                mode2 = rdevice.get_fan_mode(2)
+                rdevice.set_fan_mode(2, mode2[0], int(option_data))
+
             else:
                 return False
 
@@ -1150,6 +1251,19 @@ class Backend(_backend.Backend):
         # -- Device uses an on/off state (zones only)
         if self._device_has_zone_capability(rdevice, zone, "active"):
             return [rzone, bool]
+
+        # -- Device does not support brightness/toggle options
+        return [None, None]
+
+    def _get_device_fan_control(self, rdevice, zone):
+        """
+        Returns both the object and data type required for setting the brightness
+        of the specified zone.
+
+        """
+        # -- Device uses a variable (0-100) and it's 'main' so use the root element
+        if rdevice.has("fan_speed") :
+            return [rdevice, int]
 
         # -- Device does not support brightness/toggle options
         return [None, None]
