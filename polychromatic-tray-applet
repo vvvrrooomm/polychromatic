@@ -426,7 +426,7 @@ class PolychromaticTrayApplet():
                 option_icon = self._get_icon("options", option_id)
 
                 # Show 'Edit Colours' later if supported
-                if len(option["colours"]) > 0:
+                if "colours" in option and len(option["colours"]) > 0:
                     can_set_colours = True
 
                 # Option contains parameters, show submenu
@@ -439,7 +439,7 @@ class PolychromaticTrayApplet():
                         indicator.add_menu_item(submenu, self.create_parameters_menu(device, zone, option))
 
                         for param in option["parameters"]:
-                            if len(param["colours"]) > 0:
+                            if "colours" in param and len(param["colours"]) > 0:
                                 can_set_colours = True
 
                 # Option is a slider, for values between 0 and 100.
