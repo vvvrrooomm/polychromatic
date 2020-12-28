@@ -286,13 +286,14 @@ class Backend(_backend.Backend):
                 "reactive": self._("Reactive"),
                 "breath": self._("Breath"),
                 "ripple": self._("Ripple"),
+                "moon": self._("Moon"),
                 "starlight": self._("Starlight"),
                 "pulsate": self._("Pulsate"),
                 "blinking": self._("Blink"),
                 "static": self._("Static")
             }
 
-            for effect in ["none", "spectrum", "wave", "reactive", "ripple", "static", "pulsate", "blinking"]:
+            for effect in ["none", "spectrum", "wave", "reactive", "ripple", "moon", "static", "pulsate", "blinking"]:
                 if _device_has_zone_capability(effect):
                     effect_option = {
                         "id": effect,
@@ -396,7 +397,7 @@ class Backend(_backend.Backend):
                             }
                         ]
 
-                    elif effect in ["static", "pulsate", "blinking"]:
+                    elif effect in ["static", "pulsate", "blinking", "moon"]:
                         effect_option["colours"] = [current_state["colour_1"]]
 
                     effect_option["active"] = True if current_state["effect"].startswith(effect) else False
@@ -782,6 +783,9 @@ class Backend(_backend.Backend):
                 # Params: <speed>
                 rzone.ripple_random(self.ripple_refresh_rate)
                 self._write_persistence_storage_fallback(rdevice, zone, rzone, "effect", "rippleRandomColour")
+
+            elif option_id == "moon":
+                rzone.moon()
 
             elif option_id == "starlight":
                 starlight_type = option_data.split("_")[0]

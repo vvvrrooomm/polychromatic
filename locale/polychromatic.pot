@@ -86,6 +86,9 @@ msgstr ""
 msgid "Ripple"
 msgstr ""
 
+msgid "Moon"
+msgstr ""
+
 #: pylib/common.py:268
 msgid "Starlight"
 msgstr ""
